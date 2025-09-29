@@ -128,7 +128,7 @@ fun HomeScreen(onAddNoteClick: () -> Unit, onNoteClick: (Int) -> Unit) {
             LazyColumn (
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(start = 16.dp, end = 16.dp, top = 64.dp)
             ) {
                 //la siguiente linea es como decir por cada elemnto de notesList haz esto
                 items(notesList) { note ->
@@ -183,11 +183,11 @@ fun HomeScreen(onAddNoteClick: () -> Unit, onNoteClick: (Int) -> Unit) {
 
 @Composable
 fun SecondScreen(noteId: Int, returnClick: () -> Unit, deleteClick: () -> Unit){
-    //variables donde se van almacenar todo lo que se escribe
-    var text by remember { mutableStateOf("") }
-    var title by remember {mutableStateOf (value = "")}
     //variable para encontar la nota correspondiente de la lista segun su id+
     val note = notesList.find {it.id == noteId}
+    //variables donde se van almacenar todo lo que se escribe
+    var text by remember { mutableStateOf(note?.content ?: "") }
+    var title by remember {mutableStateOf (note?.title ?: "")}
 
     Box(
         modifier = Modifier
