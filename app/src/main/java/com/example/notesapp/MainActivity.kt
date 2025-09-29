@@ -48,6 +48,15 @@ import androidx.compose.material.icons.filled.Delete
 
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.CardDefaults
+import androidx.compose.ui.modifier.modifierLocalConsumer
+
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Card
+import androidx.compose.foundation.clickable
+
+
 
 
 class MainActivity : ComponentActivity() {
@@ -58,14 +67,33 @@ class MainActivity : ComponentActivity() {
             NotesAppTheme {
                 //estado donde se guarda en que pantalla estas, el valor incial home
                 var currentScreen by remember { mutableStateOf("home") }
+                //cuando clickas sobre una nota ya creada, se alamacena el id de las nota seleccionada para editarla
+                var selectNoteId by remember { mutableStateOf<Int?>(null) }
+                //lo de remember{mutableSateOf(...)} es para que las variables se puedan actualizar y la UI se refresque automaticamente
 
                 if (currentScreen == "home") {
-                    HomeScreen( onAddNoteClick = {currentScreen = "sedcond" })
-                } else {
-                    SecondScreen(
-                        returnClick = {currentScreen = "home"},
-                        deleteClick = {currentScreen = "home"}
+                    HomeScreen(
+                        onAddNoteClick = {
+                            val newNote = createNote()
+                            selectNoteId = newNote.id
+                            currentScreen = "sedcond"
+                        },
+                        onNoteClick = { noteId ->
+                            selectNoteId = noteId
+                            currentScreen = "sedcond"
+                        }
                         )
+                } else {
+                    selectNoteId?.let { id ->
+                        SecondScreen(
+                            noteId = id,
+                            returnClick = {currentScreen = "home"},
+                            deleteClick = {
+                                notesList.removeAll{ it.id == id}
+                                currentScreen = "home"
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -73,26 +101,65 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun HomeScreen(onAddNoteClick: () -> Unit) {
+fun HomeScreen(onAddNoteClick: () -> Unit, onNoteClick: (Int) -> Unit) {
     Box(
-        modifier = Modifier.fillMaxSize(), // ocupa toda la pantalla
-        contentAlignment = Alignment.Center // centra el texto
+        // ocupa toda la pantalla
+        modifier = Modifier.fillMaxSize(),
+        // centra el texto
+        contentAlignment = Alignment.Center
     ) {
-        //texto de inicio
-        Text(
-            text = "Hola, para escribir tu primera nota pulsa el +",
-            fontSize = 24.sp, //tamaño de la letra
-            fontWeight = FontWeight.Bold, //grosor de la fuente
-            modifier = Modifier
-                .padding(horizontal = 32.dp)
-                .fillMaxWidth()
-        )
+        //cuando no hay ninguna nota creada
+        if(notesList.isEmpty()){
+            //texto de inicio
+            Text(
+                text = "Hola, para escribir tu primera nota pulsa el +",
+                //tamaño de la letra
+                fontSize = 24.sp,
+                //grosor de la fuente
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .padding(horizontal = 32.dp)
+                    .fillMaxWidth()
+            )
+        } else {
+            //LazyColumn es como un listado vertical de cosas que se pueden deslizar hacia arriba
+            //abajo. Lo de Lazy es porque solo dibuja en la pantalla lo que se ve, por eso perezoso,
+            //es decir si hay 20 notas y solo caben 5 en la pantalla, solo dibuja las 5
+            LazyColumn (
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                //la siguiente linea es como decir por cada elemnto de notesList haz esto
+                items(notesList) { note ->
+                    //Card es una tarjeta visual
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                            //clickable es una funcion que hace que la tarjeta se pueda clickar
+                            //y cuando la clicka hace la funcion de dentro
+                            .clickable{ onNoteClick(note.id) },
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFFFC1E3)
+                        )
+                    ) {
+                        Text(
+                            text = if (note.title.isNotEmpty()) note.title else "(Sin título)",
+                            fontSize = 20.sp,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+            }
+        }
 
         //Boton para añadir notas
         Button(
-            onClick = { onAddNoteClick() }, //función para cambiar de pesteña
+            //función para cambiar de pesteña
+            onClick = { onAddNoteClick() },
             modifier = Modifier
-                .align(Alignment.BottomEnd) // esquina inferior izquierda
+                .align(Alignment.BottomEnd)
                 // TopStart --> esquina superior izquierda
                 // TopENd --> esquina superior derecha
                 // BottomStart --> esquina inferior izquierda
@@ -115,14 +182,17 @@ fun HomeScreen(onAddNoteClick: () -> Unit) {
 }
 
 @Composable
-fun SecondScreen(returnClick: () -> Unit, deleteClick: () -> Unit){
-    //variables donde se va almacenartodo lo que se escribe
+fun SecondScreen(noteId: Int, returnClick: () -> Unit, deleteClick: () -> Unit){
+    //variables donde se van almacenar todo lo que se escribe
     var text by remember { mutableStateOf("") }
     var title by remember {mutableStateOf (value = "")}
+    //variable para encontar la nota correspondiente de la lista segun su id+
+    val note = notesList.find {it.id == noteId}
 
     Box(
         modifier = Modifier
-            .fillMaxSize() // ocupa toda la pantalla
+            // ocupa toda la pantalla
+            .fillMaxSize()
             .padding(top = 64.dp, bottom = 64.dp, start = 16.dp, end = 16.dp),
     ) {
         //Botones y titulo de la parte superior
@@ -134,7 +204,11 @@ fun SecondScreen(returnClick: () -> Unit, deleteClick: () -> Unit){
         ) {
             //Boton volver
             Button(
-                onClick = { returnClick() },
+                onClick = {
+                    updateTitle(noteId, title)
+                    updateContet(noteId, text)
+                    returnClick()
+                },
                 modifier = Modifier
                     .padding(
                         end = 16.dp,
@@ -151,7 +225,8 @@ fun SecondScreen(returnClick: () -> Unit, deleteClick: () -> Unit){
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
                     contentDescription = "Volver",
-                    tint = Color.Black, // color del ícono
+                    // color del ícono
+                    tint = Color.Black,
                     modifier = Modifier.size(32.dp)
                 )
             }
@@ -205,23 +280,26 @@ fun SecondScreen(returnClick: () -> Unit, deleteClick: () -> Unit){
             onValueChange = {
                 text = it
             }, // cada vez que se escribe algo, se actualiza el valor de text con lo nuevo
-            placeholder = { Text("Escribe tu nota aquí...") }, // lo que se pone cuando el valor de texto es nulo
+            // lo que se pone cuando el valor de texto es nulo
+            placeholder = { Text("Escribe tu nota aquí...") },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = 92.dp),
-            singleLine = false, // permite que el texto tenga varias lineas
-            maxLines = Int.MAX_VALUE, // numero ilimitado de lineas
+            // permite que el texto tenga varias lineas
+            singleLine = false,
+            // numero ilimitado de lineas
+            maxLines = Int.MAX_VALUE,
             colors = TextFieldDefaults.colors(
                 //aqui se pone focused y unfocused porque para el textField hay más estados que para el buttom
-                focusedContainerColor = Color(0xFFFFC1E3), //cuando no esta el cursor encima
-                unfocusedContainerColor = Color(0xFFFFC1E3), //cuando no esta el cursor encima
+                //cuando no esta el cursor encima
+                focusedContainerColor = Color(0xFFFFC1E3),
+                //cuando no esta el cursor encima
+                unfocusedContainerColor = Color(0xFFFFC1E3),
                 focusedTextColor = Color.Black,
                 unfocusedTextColor = Color.Black,
                 cursorColor = Color.Black
             )
         )
-
-
         }
 }
 
@@ -229,21 +307,45 @@ fun SecondScreen(returnClick: () -> Unit, deleteClick: () -> Unit){
 @Preview(
     showBackground = true,
     showSystemUi = true,
-    name = "My Preview")
+    name = "Preview Home"
+)
 @Composable
 fun PreviewHome() {
+    // Simulamos algunas notas para ver cómo queda el diseño
+    notesList.clear()
+    notesList.addAll(
+        listOf(
+            Note(id = 1, title = "Comprar pan", content = "Ir a la panadería a las 9"),
+            Note(id = 2, title = "Estudiar Kotlin", content = "Repasar clases y hacer un ejemplo"),
+            Note(id = 3, title = "Ir al gym", content = "Pierna y hombros")
+        )
+    )
+
     NotesAppTheme {
-        HomeScreen(onAddNoteClick = {})
+        HomeScreen(
+            onAddNoteClick = {},   // en el preview no hace nada
+            onNoteClick = {}       // en el preview no hace nada
+        )
     }
 }
 
 @Preview(
     showBackground = true,
     showSystemUi = true,
-    name = "My Preview")
+    name = "Preview Second"
+)
 @Composable
 fun PreviewSecond() {
+    // Simulamos una nota para editar
+    val fakeNote = Note(id = 99, title = "Nota de prueba", content = "Este es el contenido")
+    notesList.clear()
+    notesList.add(fakeNote)
+
     NotesAppTheme {
-        SecondScreen(returnClick = {}, deleteClick = {})
+        SecondScreen(
+            noteId = fakeNote.id,
+            returnClick = {},   // en el preview no hace nada
+            deleteClick = {}    // en el preview no hace nada
+        )
     }
 }
