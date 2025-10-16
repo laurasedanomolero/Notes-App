@@ -1,14 +1,16 @@
 package com.example.notesapp
+import androidx.compose.runtime.mutableStateListOf
 
 var noteIdCounter: Int = 0
 
 data class Note (
     val id: Int,
     var title: String = "",
-    var content: String = ""
+    var content: String = "",
+    var isFavorite: Boolean = false
 )
 
-val notesList = mutableListOf<Note>()
+val notesList = mutableStateListOf<Note>()
 
 fun createNote(): Note {
     noteIdCounter++
@@ -24,7 +26,7 @@ fun updateTitle(id : Int, newTitle: String){
     }
 }
 
-fun updateContet(id : Int, newContent: String){
+fun updateContent(id : Int, newContent: String){
     val note = notesList.find {it.id == id}
     note?.let{
         it.content = newContent

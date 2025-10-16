@@ -56,4 +56,12 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    //Dependencias para que se guarden las notas cuando se cierra la app
+    // DataStore (preferencias)
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    // Gson para serializar/deserializar la lista en JSON
+    implementation("com.google.code.gson:gson:2.10.1")
+    // lifecycle-runtime para lifecycleScope (opcional si no lo tienes)
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
 }
