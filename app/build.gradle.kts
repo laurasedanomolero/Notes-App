@@ -64,4 +64,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     // lifecycle-runtime para lifecycleScope (opcional si no lo tienes)
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
+
+    //para viewmodel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
 }
