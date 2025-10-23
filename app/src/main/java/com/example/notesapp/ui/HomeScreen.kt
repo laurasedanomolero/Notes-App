@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.notesapp.model.Note
 import com.example.notesapp.viewmodel.NotesViewModel
+import androidx.compose.foundation.border
+
 
 @Composable
 fun HomeScreen(
@@ -49,12 +51,20 @@ fun HomeScreen(
                 // Botón de favoritos
                 FloatingActionButton(
                     onClick = { showFavoritesOnly = !showFavoritesOnly },
-                    containerColor = if (showFavoritesOnly) Color.Yellow else pink
+                    containerColor = if (showFavoritesOnly) Color.White else pink ,
+                    shape = MaterialTheme.shapes.medium,
+                    modifier = Modifier
+                        .size(60.dp) // tamaño personalizado opcional
+                        .border(
+                            width = if (showFavoritesOnly) 4.dp else 0.dp, // grosor borde
+                            color = pink,
+                            shape = MaterialTheme.shapes.medium
+                        )
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Star,
                         contentDescription = "Favoritos",
-                        tint = if (showFavoritesOnly) Color.Black else Color.White,
+                        tint = if (showFavoritesOnly) pink else Color.White,
                         modifier = Modifier.size(28.dp)
                     )
                 }
@@ -62,9 +72,11 @@ fun HomeScreen(
                 // Botón de añadir nota
                 FloatingActionButton(
                     onClick = onAddNoteClick,
-                    containerColor = pink
+                    containerColor = pink,
+                    modifier = Modifier
+                        .size(60.dp)
                 ) {
-                    Text("+", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("+", fontSize = 35.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 }
             }
         }
@@ -87,7 +99,7 @@ fun HomeScreen(
                     text = "Notas",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 
@@ -104,7 +116,7 @@ fun HomeScreen(
                             "No tienes notas favoritas aún"
                         else
                             "No hay notas todavía",
-                        color = softPink
+                        color = Color.Black
                     )
                 }
             } else {
@@ -148,7 +160,7 @@ fun NoteItem(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = if (note.title.isNotEmpty()) note.title else "(Sin título)",
+                text = if (note.title.isNotEmpty()) note.title else "Sin título",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
@@ -156,7 +168,7 @@ fun NoteItem(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = note.content,
-                color = pinkLight, // contenido rosa clarito
+                color = Color.Black, // contenido rosa clarito
                 maxLines = 2
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -167,7 +179,7 @@ fun NoteItem(
                 TextButton(onClick = onFavoriteClick) {
                     Text(
                         text = if (note.isFavorite) "★ Favorito" else "☆ Favorito",
-                        color = if (note.isFavorite) pink else Color.Gray
+                        color = if (note.isFavorite) MaterialTheme.colorScheme.primary else Color.Gray
                     )
                 }
                 TextButton(onClick = onDeleteClick) {
