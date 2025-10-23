@@ -12,15 +12,31 @@ import com.example.notesapp.ui.SecondScreen
 import com.example.notesapp.viewmodel.NotesViewModel
 import com.example.notesapp.ui.theme.NotesAppTheme
 
+import com.example.notesapp.data.NoteDatabase
+
+//Creamos la base de datos de Room
+//Obtenemos el DAO (noteDao)
+//Pasarlo al NotesViewModel manualmente, se puede hacer con factory (mirar mas adelante)
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        //Creamos la instancia de la base de datos de Room
+        val database = NoteDatabase.getDatabase(applicationContext)
+
+        //Obtenemos el DAO para acceder a la tabla de notas
+        val noteDao = database.noteDao()
+
+        //Creamos el ViewModel pasándole el DAO directamente
+        val notesViewModel = NotesViewModel(application)
+
+        //Configuramos la interfaz
         setContent {
             NotesAppTheme {
                 // ViewModel compartido entre pantallas
-                val notesViewModel: NotesViewModel = viewModel()
+                //val notesViewModel: NotesViewModel = viewModel()
 
                 // Estado de navegación
                 var currentScreen by rememberSaveable { mutableStateOf("home") }
@@ -30,9 +46,10 @@ class MainActivity : ComponentActivity() {
                     "home" -> {
                         HomeScreen(
                             onAddNoteClick = {
-                                val newNote = notesViewModel.createNote()
-                                selectedNoteId = newNote.id
-                                currentScreen = "second"
+                                notesViewModel.createNote { newId ->
+                                    selectedNoteId = newId
+                                    currentScreen = "second"
+                                }
                             },
                             onNoteClick = { noteId ->
                                 selectedNoteId = noteId
