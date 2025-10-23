@@ -59,8 +59,13 @@ fun SecondScreen(
         ) {
             // Icono volver
             IconButton(onClick = {
-                viewModel.updateTitle(noteId, title)
-                viewModel.updateContent(noteId, content)
+                if (title.isBlank() && content.isBlank()) {
+                    viewModel.deleteNoteById(noteId)
+                } else {
+                    // Guardar los cambios antes de volver
+                    viewModel.updateTitle(noteId, title)
+                    viewModel.updateContent(noteId, content)
+                }
                 returnClick()
             }) {
                 Icon(
@@ -102,7 +107,9 @@ fun SecondScreen(
         // Campo de título
         BasicTextField(
             value = title,
-            onValueChange = { title = it },
+            onValueChange = {
+                title = it
+                viewModel.updateTitle(noteId, it)},
             textStyle = TextStyle(
                 color = Color.Black,
                 fontSize = 24.sp,
@@ -121,7 +128,9 @@ fun SecondScreen(
         //Campo de contenido
         TextField(
             value = content,
-            onValueChange = { content = it },
+            onValueChange = {
+                content = it
+                viewModel.updateContent(noteId, it)},
             placeholder = { Text("Escribe tu nota aquí...", color = grayPlaceholder) },
             modifier = Modifier
                 .fillMaxSize(),
